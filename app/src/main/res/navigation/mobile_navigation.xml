@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/nav_home">
+
+    <!--dashboard section where user can create new hunt and eventually look for friends
+    shortcuts available for other fragments-->
+    <fragment
+        android:id="@+id/nav_home"
+        android:name="com.example.dam_5.ui.home.HomeFragment"
+        android:label="@string/menu_home"
+        tools:layout="@layout/fragment_home" />
+
+    <fragment
+        android:id="@+id/nav_search"
+        android:name="com.example.dam_5.ui.search.SearchFragment"
+        android:label="@string/menu_search"
+        tools:layout="@layout/fragment_search" />
+
+    <fragment
+        android:id="@+id/nav_profile"
+        android:name="com.example.dam_5.ui.profile.ProfileFragment"
+        android:label="@string/menu_profile"
+        tools:layout="@layout/fragment_profile" />
+
+    <fragment
+        android:id="@+id/nav_hunt"
+        android:name="com.example.dam_5.ui.hunt.HuntFragment"
+        android:label="@string/menu_hunt"
+        tools:layout="@layout/fragment_hunt"
+
+
+    />
+</navigation>
