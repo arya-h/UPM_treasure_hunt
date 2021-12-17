@@ -16,9 +16,13 @@
     <string name="search_input">Look for your friends!</string>
     <string name="search_error_message">There was an error while communicating with the database. Try again later please</string>
     <string name="search_error_title">Error</string>
-    
-    
+
+
     <!--HUNT STRINGS-->
     <string name="new_hunt_dialog_title">Start a new hunt</string>
+    <string name="new_hunt_title_hint">Choose a name for your hunt!</string>
+    <string name="new_hunt_title_text">Hunt title</string>
+    <string name="treasures_counter">Treasures left to pin : </string>
+    <string name="title_activity_new_hunt_map">NewHuntMapActivity</string>
 
 </resources>

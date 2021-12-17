@@ -152,6 +152,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int id) {
                         /*intent to new hunt screen*/
                         Intent intent = new Intent(getApplicationContext(), NewHuntActivity.class);
+                        startActivity(intent);
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

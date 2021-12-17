@@ -1,9 +1,134 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".NewHuntActivity">
+
+
+    <ScrollView
+        android:id="@+id/scrollView2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="62dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="44dp"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="59dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/huntTitleText"
+                    android:layout_width="133dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:layout_weight="1"
+                    android:text="@string/new_hunt_title_text" />
+
+                <EditText
+                    android:id="@+id/huntNameInput"
+                    android:layout_width="272dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="20dp"
+                    android:ems="10"
+                    android:hint="@string/new_hunt_title_hint"
+                    android:inputType="textPersonName"
+                    android:minHeight="48dp"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="59dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/numCoordinatesText"
+                    android:layout_width="247dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:layout_weight="1"
+                    android:maxWidth="100dp"
+                    android:text="n° of treasures" />
+
+                <EditText
+                    android:id="@+id/huntNumCoordinatesInput"
+                    android:layout_width="113dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="90dp"
+                    android:ems="10"
+                    android:inputType="number"
+                    android:minHeight="48dp"
+                    tools:ignore="SpeakableTextPresentCheck" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="66dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/new_hunt_treasure_radius_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:layout_weight="1"
+                    android:paddingTop="7dp"
+                    android:text="Radius" />
+
+                <SeekBar
+                    android:id="@+id/seekBarRadius"
+                    style="@style/Widget.AppCompat.SeekBar.Discrete"
+                    android:layout_width="172dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="50dp"
+                    android:layout_weight="1"
+                    android:max="10"
+                    android:paddingTop="7dp"
+                    android:progress="3" />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/numCoordinatesRemaining"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="@string/treasures_counter"
+                android:textAlignment="center" />
+
+            <Button
+                android:id="@+id/buttonGoToMap"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:text="next" />
+
+
+        </LinearLayout>
+
+
+    </ScrollView>
+
+
+    <!--<com.google.android.gms.maps.MapView
+        android:id="@+id/map"
+        android:layout_width="404dp"
+        android:layout_height="455dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:ignore="SpeakableTextPresentCheck" />-->
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
