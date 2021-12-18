@@ -55,7 +55,6 @@ public class SearchFragment extends Fragment {
     private ListView usersList;
 
 
-
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         searchViewModel =
@@ -63,7 +62,6 @@ public class SearchFragment extends Fragment {
 
         binding = FragmentSearchBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
-
 
 
         getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
@@ -88,19 +86,20 @@ public class SearchFragment extends Fragment {
             public void onClick(View view) {
                 /*retrieve query input*/
                 EditText search_input = (EditText) getView().findViewById(R.id.search_query);
-                if(search_input.getText().toString().isEmpty()){
+                if (search_input.getText().toString().isEmpty()) {
                     search_input.setError("The value inserted is empty!");
-                }else{
+                } else {
                     /*enable progress bar*/
                     progBar.setVisibility(View.VISIBLE);
                     progBar.setEnabled(true);
 
-                   /* Log.d("COOL BRO", "fino a qui ok");*/
+                    /* Log.d("COOL BRO", "fino a qui ok");*/
                     usersRef = db.collection("users");
 
+
                     /*execute firebase query*/
-                     usersRef.whereGreaterThanOrEqualTo("username", search_input.getText().toString().toLowerCase()).whereLessThanOrEqualTo("username", search_input.getText().toString().toLowerCase()+ '\uf8ff')
-                    .get()
+                    usersRef.whereGreaterThanOrEqualTo("username", search_input.getText().toString().toLowerCase()).whereLessThanOrEqualTo("username", search_input.getText().toString().toLowerCase() + '\uf8ff')
+                            .get()
                             .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                                 @Override
                                 public void onComplete(@NonNull Task<QuerySnapshot> task) {
@@ -110,16 +109,16 @@ public class SearchFragment extends Fragment {
                                     ArrayList<User> users = new ArrayList<>();
 
 
-                                    if(task.isSuccessful()){
-                                        if (task.getResult().isEmpty()){
-                                            Snackbar.make(getView(), "No user found :(",  BaseTransientBottomBar.LENGTH_SHORT).show();
+                                    if (task.isSuccessful()) {
+                                        if (task.getResult().isEmpty()) {
+                                            Snackbar.make(getView(), "No user found :(", BaseTransientBottomBar.LENGTH_SHORT).show();
                                         }
                                         for (QueryDocumentSnapshot document : task.getResult()) {
                                             Log.d("COOL BRO", document.getId() + " => " + document.getData());
                                             users.add(new User(document.getString("username"),
-                                                               document.getString("email"),
-                                                               document.getBoolean("hasProfilePicture"),
-                                                               document.getString("profilePictureURL")));
+                                                    document.getString("email"),
+                                                    document.getBoolean("hasProfilePicture"),
+                                                    document.getString("profilePictureURL")));
 
 
                                         }
@@ -128,7 +127,7 @@ public class SearchFragment extends Fragment {
                                         ListView lv = getView().findViewById(R.id.search_list);
                                         lv.setAdapter(adapter);
 
-                                    }else{
+                                    } else {
                                         Log.d("not COOL BRO", "TESA CAZZO");
                                         /*show error message*/
                                         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());

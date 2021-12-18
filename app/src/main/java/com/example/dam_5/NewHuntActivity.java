@@ -62,8 +62,6 @@ public class NewHuntActivity extends AppCompatActivity {
     private LocationManager locationManager;
 
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,10 +80,13 @@ public class NewHuntActivity extends AppCompatActivity {
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                Log.d("SEEKBAR", "this is seekbar :" + i + "and b = " + b);
                 radiusValue = i;
             }
+
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
+
             }
 
             @Override
@@ -108,28 +109,31 @@ public class NewHuntActivity extends AppCompatActivity {
 
 
 
-                InputMethodManager imm = (InputMethodManager) getApplicationContext().getSystemService(Service.INPUT_METHOD_SERVICE);
+                /* InputMethodManager imm = (InputMethodManager) getApplicationContext().getSystemService(Service.INPUT_METHOD_SERVICE);*/
                 if (newHuntNumCoordinates.getText().toString().isEmpty()) {
-                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                    Snackbar.make(view, "Empty number of coordinates", Snackbar.LENGTH_LONG).show();
+                    /*imm.hideSoftInputFromWindow(view.getWindowToken(), 0);*/
+                    newHuntNumCoordinates.setError("Empty number of coordinates");
+                    /*Snackbar.make(view, "Empty number of coordinates", Snackbar.LENGTH_LONG).show();*/
                     return;
                 }
                 int numCoord = Integer.parseInt(newHuntNumCoordinates.getText().toString());
+                /*invalid number of pins*/
                 if (numCoord < 1 || numCoord > 5) {
-                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                    Snackbar.make(view, "Invalid number of coordinates. Must be between 1 and 5", Snackbar.LENGTH_LONG).show();
+                    /* imm.hideSoftInputFromWindow(view.getWindowToken(), 0);*/
+                    /*Snackbar.make(view, "Invalid number of coordinates. Must be between 1 and 5", Snackbar.LENGTH_LONG).show();*/
+                    newHuntNumCoordinates.setError("Invalid number of coordinates. Must be between 1 and 5");
                     return;
+                    /*empty hunt title*/
                 } else if (newHuntTitle.getText().toString().isEmpty()) {
-                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                    Snackbar.make(view, "Title is empty!", Snackbar.LENGTH_LONG).show();
+
+                    newHuntTitle.setError("Title is empty!");
+                    /*Snackbar.make(view, "Title is empty!", Snackbar.LENGTH_LONG).show();*/
                     return;
-                }else if(lastKnownPosition == null){
-                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                    /*still waiting for system to give last known position*/
+                } else if (lastKnownPosition == null) {
                     Snackbar.make(view, "Still querying for your last position, wait a second...", Snackbar.LENGTH_LONG).show();
                     return;
-                }
-
-                else {
+                } else {
                     /*send to map activity*/
                     Intent intent = new Intent(getApplicationContext(), NewHuntMapActivity.class);
                     intent.putExtra("radius", radiusValue);
@@ -148,27 +152,27 @@ public class NewHuntActivity extends AppCompatActivity {
         /*check if permission has been granted*/
 
 
-            if (ContextCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+        if (ContextCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ContextCompat.checkSelfPermission(getApplicationContext(), ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION}, 101);
-            }else{
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION}, 101);
+        } else {
 
-                mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-                mFusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
-                    if (location != null) {
-                        lastKnownPosition = new LatLng(location.getLatitude(), location.getLongitude());
-                        Log.d("LOCATION_SERVICE",location.getLatitude() + " - " + location.getLongitude() );
+            mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+            mFusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
+                if (location != null) {
+                    lastKnownPosition = new LatLng(location.getLatitude(), location.getLongitude());
+                    Log.d("LOCATION_SERVICE", location.getLatitude() + " - " + location.getLongitude());
 
-                    }else{
-                        Toast.makeText(getApplicationContext(), "Location services must be turned on", Toast.LENGTH_LONG).show();
-                    }
-                });
+                } else {
+                    Toast.makeText(getApplicationContext(), "Location services must be turned on", Toast.LENGTH_LONG).show();
+                }
+            });
 
 
-            }
-            }
+        }
+    }
 
-            }
+}
 
 
 

@@ -17,13 +17,13 @@ public class GlobalVariables {
     private boolean isHuntInProgress = false;
 
 
-
     private static final GlobalVariables instance = new GlobalVariables();
-    public static GlobalVariables getInstance(){
+
+    public static GlobalVariables getInstance() {
         return instance;
     }
 
-    private GlobalVariables(){
+    private GlobalVariables() {
 
     }
 

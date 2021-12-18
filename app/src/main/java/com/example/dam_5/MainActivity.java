@@ -30,6 +30,8 @@ import com.example.dam_5.databinding.ActivityMainBinding;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.collection.LLRBNode;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -41,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
 
     //firebase instances
     private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
 
 
     private AppBarConfiguration mAppBarConfiguration;
@@ -50,8 +53,6 @@ public class MainActivity extends AppCompatActivity {
     private TextView newHuntText, joinHuntText;
     private ExtendedFloatingActionButton parentFab;
     private boolean isAllFabsVisible;
-
-
 
 
     @Override
@@ -65,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         //check if already authenticated
         FirebaseUser currentUser = mAuth.getCurrentUser();
+        db = FirebaseFirestore.getInstance();
 
         /*declare floating action buttons*/
         parentFab = findViewById(R.id.fab);
@@ -95,10 +97,11 @@ public class MainActivity extends AppCompatActivity {
 
         isAllFabsVisible = false;
 
-        final View viewGroup = (View) ((View) this
-                .findViewById(android.R.id.content));
+        /*update value of isHuntInProgress on creation*/
+        DocumentReference user =
+        /*then add listener*/
 
-        if(GlobalVariables.getInstance().isHuntInProgress()){
+        if (GlobalVariables.getInstance().isHuntInProgress()) {
             /*parentFab.setEnabled(false);*/
             newHuntFab.setEnabled(false);
             joinHuntFab.setEnabled(false);
@@ -106,18 +109,16 @@ public class MainActivity extends AppCompatActivity {
             parentFab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    /*Snackbar.make(view.findViewById(R.id.content),"There is already a treasure hunt underway. Either abandon the current one or wait for" +
-                            "it to finish!",  BaseTransientBottomBar.LENGTH_LONG).show();*/
                     Snackbar.make(view, "There is already a treasure hunt underway. Either abandon the current one or wait for" +
-                            "it to finish!",BaseTransientBottomBar.LENGTH_LONG).show();
+                            "it to finish!", BaseTransientBottomBar.LENGTH_LONG).show();
 
                 }
             });
-        }else{
+        } else {
             parentFab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if(!isAllFabsVisible){
+                    if (!isAllFabsVisible) {
                         newHuntFab.show();
                         newHuntText.setVisibility(View.VISIBLE);
                         joinHuntFab.show();
@@ -126,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
                         parentFab.extend();
 
                         isAllFabsVisible = true;
-                    }else{
+                    } else {
                         newHuntFab.hide();
                         newHuntText.setVisibility(View.GONE);
                         joinHuntFab.hide();
@@ -178,6 +179,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        /*firebase listener. when user creates a hunt he's automatically */
+
 
     }
 
@@ -197,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
 
     /*onBackPressed is overridden so that when the user presses the back button from the main activity it will exit the application*/
     @Override
-    public void onBackPressed(){
+    public void onBackPressed() {
         super.onBackPressed();
 
         finishAffinity();

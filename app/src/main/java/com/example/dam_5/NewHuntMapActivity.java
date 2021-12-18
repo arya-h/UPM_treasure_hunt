@@ -1,89 +1,122 @@
 package com.example.dam_5;
 
-import static android.Manifest.permission.ACCESS_BACKGROUND_LOCATION;
-import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
-import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.view.View.GONE;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentActivity;
 
-import android.annotation.SuppressLint;
 import android.app.Dialog;
-import android.content.Context;
-import android.content.DialogInterface;
+import android.app.Service;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Looper;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
+import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
+/*google maps*/
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.example.dam_5.databinding.ActivityNewHuntMapBinding;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+/*firebase*/
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class NewHuntMapActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
     private ActivityNewHuntMapBinding binding;
-    private Button addCoordBtn;
+    private Button submitHuntBtn;
     private TextView huntTitleText;
     private TextView remainingCoordinates;
     private LatLng userLatLng;
-    private AlertDialog.Builder builder;
     private EditText titlePinInput;
 
+    /*layouts for background colors*/
     private ConstraintLayout containerDialogTitlePin;
+    private ConstraintLayout containerSubmitButton;
 
+    /*information received through intent*/
     private Integer radius;
     private Integer numCoord;
-
+    private String huntTitle;
     /*dialog to insert new pin*/
-    Button dialogCancelButton;
-    Button dialogAddPinButton;
-    EditText inputTitlePin;
+    private Button dialogCancelButton;
+    private Button dialogAddPinButton;
+    private EditText inputTitlePin;
+    private ProgressBar progressBar;
+
+    /*firebase*/
+    private FirebaseFirestore db;
+    private FirebaseAuth mAuth;
+    private FirebaseUser currentUser;
+    private CollectionReference hunts;
+
 
     /*chosen coordinates*/
-    private class Pin{
-        LatLng coordinates;
-        String title;
+    private class Pin {
+        public LatLng getCoordinates() {
+            return coordinates;
+        }
 
-        protected Pin(LatLng coordinates, String title){
+        public void setCoordinates(LatLng coordinates) {
+            this.coordinates = coordinates;
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public void setTitle(String title) {
+            this.title = title;
+        }
+
+        public LatLng coordinates;
+        public String title;
+
+        protected Pin(LatLng coordinates, String title) {
             this.coordinates = coordinates;
             this.title = title;
         }
+
+        protected Pin() {
+            this.coordinates = new LatLng(0, 0);
+            this.title = "";
+        }
     }
+
     private LinkedList<Pin> chosenCoordinates;
+    int radM; /*radius in metres*/
 
 
     @Override
@@ -101,29 +134,28 @@ public class NewHuntMapActivity extends FragmentActivity implements OnMapReadyCa
         /*retrieval of intent extras*/
 
         Intent intent = getIntent();
-        String huntTitle = intent.getStringExtra("title");
+        huntTitle = intent.getStringExtra("title");
         radius = intent.getIntExtra("radius", 2); //default value is 2, medium radius
-        numCoord = intent.getIntExtra("numCoordinates", 1);
+        numCoord = intent.getIntExtra("numCoordinates", 3);
 
         /*set the values*/
-
-        addCoordBtn = findViewById(R.id.addCoordinatesButton);
+        containerSubmitButton = findViewById(R.id.containerSubmitButton);
+        submitHuntBtn = findViewById(R.id.submitHuntButton);
         huntTitleText = findViewById(R.id.huntTitle);
         remainingCoordinates = findViewById(R.id.remainingCoordinates);
 
         Log.d("INTENT_VALUES", "title:" + huntTitle + " radius : " + radius + " numCoord :" + numCoord);
         huntTitleText.setText(huntTitle);
         remainingCoordinates.setText(numCoord.toString());
+        containerSubmitButton.setBackgroundResource(R.drawable.gradient_button_hunt_disabled);
+
+        /*overlay init*/
+        ConstraintLayout overlay = findViewById(R.id.overlayLayer);
+        overlay.setVisibility(GONE);
 
         /*initially complete button is disabled for obvious reasons*/
-        addCoordBtn.setEnabled(false);
+        submitHuntBtn.setEnabled(false);
         //*click on finish button*/
-        addCoordBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-            }
-        });
 
         /*when user clicks on map, he's prompted to select a name for the pin*/
         /*titlePinInput = findViewById(R.id.titlePinInput);*/
@@ -135,11 +167,16 @@ public class NewHuntMapActivity extends FragmentActivity implements OnMapReadyCa
         /*initialize list*/
         chosenCoordinates = new LinkedList<>();
 
-        userLatLng = new LatLng( intent.getDoubleExtra("latitude", 40), intent.getDoubleExtra("longitude", -3));
+        userLatLng = new LatLng(intent.getDoubleExtra("latitude", 40), intent.getDoubleExtra("longitude", -3));
 
         dialogAddPinButton = findViewById(R.id.dialogAddPinButton);
         dialogCancelButton = findViewById(R.id.dialogCancelButton);
         inputTitlePin = findViewById(R.id.inputTitlePin);
+
+        /*firebase instance*/
+        db = FirebaseFirestore.getInstance();
+        mAuth = FirebaseAuth.getInstance();
+        currentUser = mAuth.getCurrentUser();
 
     }
 
@@ -159,7 +196,8 @@ public class NewHuntMapActivity extends FragmentActivity implements OnMapReadyCa
         // Add a marker in Sydney and move the camera
 
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-        mMap.addMarker(new MarkerOptions().position(userLatLng).title("Marker in Sydney"));
+
+        /*mMap.addMarker(new MarkerOptions().position(userLatLng).title("Marker in Sydney"));*/
         mMap.setMyLocationEnabled(true);
 
         /*to move camera on user position*/
@@ -169,20 +207,24 @@ public class NewHuntMapActivity extends FragmentActivity implements OnMapReadyCa
 
 /*        mMap.setMinZoomPreference(11.0f);
         mMap.setMaxZoomPreference(1.0f);*/
-        mMap.animateCamera(CameraUpdateFactory.zoomBy(10 ));
+        mMap.animateCamera(CameraUpdateFactory.zoomBy(10));
         mMap.moveCamera(center);
 
         /*circle radius is defined in metres.*/
         /*let's say that
-        * radius = 3 : 100m
-        *        = 2 : 50m
-        *        = 1 : 20m
-        * */
+         * radius = 3 : 100m
+         *        = 2 : 50m
+         *        = 1 : 20m
+         * */
 
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(@NonNull LatLng latLng) {
 
+                /*dont let user put more pins if already done*/
+                if (numCoord == 0) {
+                    return;
+                }
 
                 containerDialogTitlePin.setVisibility(View.VISIBLE);
 
@@ -195,6 +237,10 @@ public class NewHuntMapActivity extends FragmentActivity implements OnMapReadyCa
                     }
                 });
 
+                /*when user clicks on map, he's presented with the possibility to
+                 * add a pin with a title. there shouldnt be two pins with the same name, but i'll use coordinates as key
+                 * if i will implement deletion of pins subsequently*/
+
                 dialogAddPinButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
@@ -203,17 +249,16 @@ public class NewHuntMapActivity extends FragmentActivity implements OnMapReadyCa
                             return;
                         } else {
 
-                            int radM = 100;
-                            switch (radius) {
-                                case 1:
-                                    radM = 20;
-                                    break;
-                                case 2:
-                                    radM = 50;
-                                    break;
-                                case 3:
-                                    radM = 100;
+                            InputMethodManager imm = (InputMethodManager) getApplicationContext().getSystemService(Service.INPUT_METHOD_SERVICE);
+
+                            if (radius == 1) {
+                                radM = 20;
+                            } else if (radius == 2) {
+                                radM = 50;
+                            } else if (radius == 3) {
+                                radM = 100;
                             }
+
                             /*add marker to map*/
                             mMap.addMarker(new MarkerOptions().position(latLng).title(inputTitlePin.getText().toString()));
                             mMap.addCircle(new CircleOptions()
@@ -224,23 +269,98 @@ public class NewHuntMapActivity extends FragmentActivity implements OnMapReadyCa
                             /*add to local structure*/
                             chosenCoordinates.add(new Pin(latLng, inputTitlePin.getText().toString()));
                             containerDialogTitlePin.setVisibility(GONE);
+                            numCoord--;
+                            remainingCoordinates.setText(numCoord.toString());
+                            inputTitlePin.setText("");
+                            /*hide keyboard after pinned*/
+                            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+
+
+                            /*if all the pins have been positioned*/
+                            if (numCoord == 0) {
+                                /*enable submit button*/
+                                containerSubmitButton.setBackgroundResource(R.drawable.gradient_button_hunt);
+                                submitHuntBtn.setEnabled(true);
+                            }
 
                         }
                     }
                 });
-                }
+            }
         });
+
+        /*manage click on submit hunt button when all the pins have been set*/
+        /*send to firebase*/
+        submitHuntBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                /*add overlay spinner*/
+                ConstraintLayout overlay = findViewById(R.id.overlayLayer);
+                overlay.setVisibility(View.VISIBLE);
+                overlay.bringToFront();
+                overlay.setEnabled(false);
+                progressBar = findViewById(R.id.loadingSpinner);
+
+                /*generate random string to share with friends code*/
+                String randomTag = randomString();
+                Map<String, Object> value = new HashMap<>();
+                value.put("title", huntTitle);
+                value.put("coordinates", chosenCoordinates);
+                value.put("creator", currentUser.getEmail());
+                value.put("numCoordinates", getIntent().getIntExtra("numCoordinates", 3));
+                value.put("radius", radius);
+                /*add to db*/
+                hunts = db.collection("hunts");
+                hunts.document(randomTag).set(value)
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                Timer timer = new Timer();
+                                /*simulate loading*/
+                                Log.d("YO", "DocumentSnapshot successfully written!");
+                                timer.schedule(new TimerTask() {
+                                    @Override
+                                    public void run() {
+                                        overlay.setVisibility(GONE);
+                                    }
+                                }, 2000);
+
+                                /*put user in hunt directly*/
+                                DocumentReference user = db.collection("users").document(currentUser.getEmail());
+                                user.update("isOnHunt", true);
+                                user.update("lastHunt", randomTag);
+                                /*prompt him to share code with friends*/
+
+
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Log.w("YO", "Error writing document", e);
+                            }
+                        });
+
+
+            }
+        });
+
+
     }
 
-    private class PurchaseConfirmationDialogFragment extends DialogFragment {
-        @NonNull
-        @Override
-        public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-            return new AlertDialog.Builder(requireContext())
-                    .setMessage("okkk")
-                    .setPositiveButton("va beneeee", (dialog, which) -> {} )
-                    .create();
-        }
+    private String randomString() {
+        int leftLimit = 97; // letter 'a'
+        int rightLimit = 122; // letter 'z'
+        int targetStringLength = 10;
+        Random random = new Random();
+
+        String generatedString = random.ints(leftLimit, rightLimit + 1)
+                .limit(targetStringLength)
+                .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+                .toString();
+
+        return generatedString;
     }
 
 

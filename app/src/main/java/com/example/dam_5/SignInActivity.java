@@ -31,13 +31,12 @@ import java.util.regex.Pattern;
 public class SignInActivity extends AppCompatActivity {
 
 
-
     //firebase instantiation
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     private FirebaseAuth mAuth;
     private FirebaseUser mUser;
     //regex to verify if username is valid
-    private static final String USERNAME_REGEX =  "^[a-zA-Z0-9]([._-](?![._-])|[a-zA-Z0-9]){3,18}[a-zA-Z0-9]$";
+    private static final String USERNAME_REGEX = "^[a-zA-Z0-9]([._-](?![._-])|[a-zA-Z0-9]){3,18}[a-zA-Z0-9]$";
     private static final Pattern pattern = Pattern.compile(USERNAME_REGEX);
 
     public static boolean isValid(final String username) {
@@ -61,7 +60,6 @@ public class SignInActivity extends AppCompatActivity {
         mUser = FirebaseAuth.getInstance().getCurrentUser();
 
 
-
         btn_signin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -75,15 +73,15 @@ public class SignInActivity extends AppCompatActivity {
                 String username = username_input.getText().toString();
 
                 //check if passwords are equal
-                if(!psw.equals(conf_psw)){
+                if (!psw.equals(conf_psw)) {
                     confirm_psw.setError("Passwords dont match");
                     return;
                 }
-                if(username.length()<4){
+                if (username.length() < 4) {
                     username_input.setError("Username must be at least 5 characters long");
                     return;
                 }
-                if (!isValid(username)){
+                if (!isValid(username)) {
                     username_input.setError("The inserted username is not valid");
                     return;
                 }
@@ -96,7 +94,7 @@ public class SignInActivity extends AppCompatActivity {
                                 if (task.isSuccessful()) {
                                     for (QueryDocumentSnapshot document : task.getResult()) {
                                         //Log.d("DEBUG", document.getId() + " => " + document.getData());
-                                        if(document.get("username").equals(username)){
+                                        if (document.get("username").equals(username)) {
                                             username_input.setError("There is already a profile with the same username registered");
                                             return;
                                         }
@@ -107,20 +105,18 @@ public class SignInActivity extends AppCompatActivity {
                             }
                         });
 
-                if(email.isEmpty() || psw.isEmpty() || conf_psw.isEmpty()){
+                if (email.isEmpty() || psw.isEmpty() || conf_psw.isEmpty()) {
                     Toast tst_empty_input = Toast.makeText(getApplicationContext(), "One of the fields has been left empty", Toast.LENGTH_LONG);
                     tst_empty_input.show();
                     return;
                 }
 
-                if(psw.length()<6){
+                if (psw.length() < 6) {
                     psw_input.setError("Password length must be over 6 characters");
                     return;
-                }
-                else{
+                } else {
                     progressDialog.setIndeterminate(true);
                     progressDialog.setTitle("Registration in process");
-
 
 
                     progressDialog.setMessage("Please wait");
@@ -132,13 +128,14 @@ public class SignInActivity extends AppCompatActivity {
                     data.put("email", email);
                     data.put("username", username);
                     data.put("pending_received_requests", new LinkedList<String>());
-                    data.put("pending_sent_requests",  new LinkedList<String>());
-                    data.put("friends",   new LinkedList<String>());
+                    data.put("pending_sent_requests", new LinkedList<String>());
+                    data.put("friends", new LinkedList<String>());
                     data.put("points", 0);
                     //array with the id of previous hunts
                     data.put("past_hunts", new LinkedList<Object>());
                     //if the user is currently on a hunt, initialized to false
                     data.put("isOnHunt", false);
+                    data.put("lastHunt", "");
                     data.put("hasProfilePicture", false);
                     data.put("profilePictureURL", "");
 
@@ -151,11 +148,10 @@ public class SignInActivity extends AppCompatActivity {
                             .set(data);*/
 
 
-
                     mAuth.createUserWithEmailAndPassword(email, psw).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
-                            if(task.isSuccessful()){
+                            if (task.isSuccessful()) {
                                 progressDialog.dismiss();
                                 Toast.makeText(SignInActivity.this, "Registration completed", Toast.LENGTH_LONG).show();
                                 //move user to home activity
@@ -164,9 +160,9 @@ public class SignInActivity extends AppCompatActivity {
 
                             }
                             //if registration not succesful
-                            else{
+                            else {
                                 progressDialog.dismiss();
-                                Toast.makeText(SignInActivity.this, "Error in registration : "+task.getException().toString(),
+                                Toast.makeText(SignInActivity.this, "Error in registration : " + task.getException().toString(),
                                         Toast.LENGTH_LONG).show();
 
                             }
