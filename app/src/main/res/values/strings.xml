@@ -24,5 +24,9 @@
     <string name="new_hunt_title_text">Hunt title</string>
     <string name="treasures_counter">Treasures left to pin : </string>
     <string name="title_activity_new_hunt_map">NewHuntMapActivity</string>
+    <string name="new_hunt_buttonTitle">Add coordinates</string>
 
+    <string name="new_pin_message">Adding pin</string>
+    <string name="new_pin_title">Do you want to add a pin here?</string>
+    <string name="add_pin_dialog_title">Name your pin</string>
 </resources>

@@ -1,5 +1,7 @@
 package com.example.dam_5.utilities;
 
+import android.location.Location;
+
 public class GlobalVariables {
 
 
@@ -13,6 +15,7 @@ public class GlobalVariables {
 
     /*bool to know if hunt is ongoing*/
     private boolean isHuntInProgress = false;
+
 
 
     private static final GlobalVariables instance = new GlobalVariables();
