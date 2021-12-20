@@ -12,9 +12,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.dam_5.utilities.AvatarGetter;
-import com.example.dam_5.utilities.DownloadThread;
-import com.example.dam_5.utilities.OkHttp;
+import com.example.dam_5.utilities.GlobalVariables;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -25,8 +23,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -179,8 +175,11 @@ public class SignInActivity extends AppCompatActivity {
                                 progressDialog.dismiss();
                                 Toast.makeText(SignInActivity.this, "Registration completed", Toast.LENGTH_LONG).show();
                                 //move user to home activity
+                                GlobalVariables.getInstance().setUsername(username);
+                                GlobalVariables.getInstance().setEmail(email);
                                 Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                                 SignInActivity.this.startActivity(intent);
+
 
                             }
                             //if registration not succesful

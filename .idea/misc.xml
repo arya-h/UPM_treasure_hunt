@@ -7,6 +7,7 @@
         <entry key="..\:/Users/housh/Desktop/Erasmus UPM/MobileApplicationDevelopment/DAM_5/app/src/main/res/drawable/gradient.xml" value="0.14270833333333333" />
         <entry key="..\:/Users/housh/Desktop/Erasmus UPM/MobileApplicationDevelopment/DAM_5/app/src/main/res/drawable/gradient_button_hunt.xml" value="0.14270833333333333" />
         <entry key="..\:/Users/housh/Desktop/Erasmus UPM/MobileApplicationDevelopment/DAM_5/app/src/main/res/drawable/gradient_button_hunt_disabled.xml" value="0.1359375" />
+        <entry key="..\:/Users/housh/Desktop/Erasmus UPM/MobileApplicationDevelopment/DAM_5/app/src/main/res/drawable/rounded_corner_layout.xml" value="0.20462962962962963" />
         <entry key="..\:/Users/housh/Desktop/Erasmus UPM/MobileApplicationDevelopment/DAM_5/app/src/main/res/layout/activity_generic_user.xml" value="0.264" />
         <entry key="..\:/Users/housh/Desktop/Erasmus UPM/MobileApplicationDevelopment/DAM_5/app/src/main/res/layout/activity_login.xml" value="0.1" />
         <entry key="..\:/Users/housh/Desktop/Erasmus UPM/MobileApplicationDevelopment/DAM_5/app/src/main/res/layout/activity_main.xml" value="0.25416666666666665" />
@@ -15,12 +16,13 @@
         <entry key="..\:/Users/housh/Desktop/Erasmus UPM/MobileApplicationDevelopment/DAM_5/app/src/main/res/layout/activity_sign_in.xml" value="0.12360688956433637" />
         <entry key="..\:/Users/housh/Desktop/Erasmus UPM/MobileApplicationDevelopment/DAM_5/app/src/main/res/layout/add_pin_dialog_layout.xml" value="0.264" />
         <entry key="..\:/Users/housh/Desktop/Erasmus UPM/MobileApplicationDevelopment/DAM_5/app/src/main/res/layout/app_bar_main.xml" value="0.264" />
-        <entry key="..\:/Users/housh/Desktop/Erasmus UPM/MobileApplicationDevelopment/DAM_5/app/src/main/res/layout/content_main.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/housh/Desktop/Erasmus UPM/MobileApplicationDevelopment/DAM_5/app/src/main/res/layout/content_main.xml" value="0.2" />
         <entry key="..\:/Users/housh/Desktop/Erasmus UPM/MobileApplicationDevelopment/DAM_5/app/src/main/res/layout/custom_searchlist.xml" value="0.25416666666666665" />
         <entry key="..\:/Users/housh/Desktop/Erasmus UPM/MobileApplicationDevelopment/DAM_5/app/src/main/res/layout/fragment_home.xml" value="0.25416666666666665" />
         <entry key="..\:/Users/housh/Desktop/Erasmus UPM/MobileApplicationDevelopment/DAM_5/app/src/main/res/layout/fragment_hunt.xml" value="0.25416666666666665" />
         <entry key="..\:/Users/housh/Desktop/Erasmus UPM/MobileApplicationDevelopment/DAM_5/app/src/main/res/layout/fragment_profile.xml" value="0.25416666666666665" />
         <entry key="..\:/Users/housh/Desktop/Erasmus UPM/MobileApplicationDevelopment/DAM_5/app/src/main/res/layout/fragment_search.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/housh/Desktop/Erasmus UPM/MobileApplicationDevelopment/DAM_5/app/src/main/res/layout/join_hunt_dialog.xml" value="0.264" />
         <entry key="..\:/Users/housh/Desktop/Erasmus UPM/MobileApplicationDevelopment/DAM_5/app/src/main/res/layout/nav_header_main.xml" value="0.25416666666666665" />
         <entry key="..\:/Users/housh/Desktop/Erasmus UPM/MobileApplicationDevelopment/DAM_5/app/src/main/res/layout/search_user_item.xml" value="0.264" />
         <entry key="..\:/Users/housh/Desktop/Erasmus UPM/MobileApplicationDevelopment/DAM_5/app/src/main/res/menu/activity_main_drawer.xml" value="0.264" />

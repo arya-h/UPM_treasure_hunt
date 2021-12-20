@@ -1,15 +1,12 @@
 package com.example.dam_5;
 
-import static android.Manifest.permission.ACCESS_BACKGROUND_LOCATION;
-import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
-import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
+import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 
@@ -35,15 +32,13 @@ import com.google.android.material.snackbar.Snackbar;
 public class NewHuntActivity extends AppCompatActivity {
 
     private Integer radiusValue;
-    private SeekBar seekBar;
-    private EditText newHuntTitle;
-    private EditText newHuntNumCoordinates;
     private LatLng lastKnownPosition;
 
     private FusedLocationProviderClient mFusedLocationClient;
 
 
 
+    @SuppressLint("MissingPermission")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

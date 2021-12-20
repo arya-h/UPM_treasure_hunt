@@ -283,6 +283,7 @@ public class NewHuntMapActivity extends FragmentActivity implements OnMapReadyCa
                 value.put("numCoordinates", getIntent().getIntExtra("numCoordinates", 3));
                 value.put("radius", radius);
                 value.put("isOngoing", true);
+                value.put("notifications", new ArrayList<String>());
                 /*add to db*/
                 hunts = db.collection("hunts");
                 hunts.document(randomTag).set(value)

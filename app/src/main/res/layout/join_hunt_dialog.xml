@@ -7,22 +7,23 @@
     android:layout_height="wrap_content">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="358dp"
-        android:layout_height="112dp">
+        android:layout_width="match_parent"
+        android:layout_height="192dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/constraintLayout"
             android:layout_width="327dp"
             android:layout_height="39dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
             <TextView
                 android:id="@+id/dialogTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="@string/add_pin_dialog_title"
+                android:text="@string/dialog_join_hunt_title"
                 android:textAlignment="gravity"
                 android:textSize="24sp"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -30,16 +31,25 @@
                 app:layout_constraintTop_toTopOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <EditText
-            android:id="@+id/titlePinInput"
-            android:layout_width="195dp"
-            android:layout_height="48dp"
-            android:ems="10"
-            android:hint="pin name"
-            android:inputType="textPersonName"
-            app:layout_constraintBottom_toBottomOf="parent"
+        <LinearLayout
+            android:layout_width="327dp"
+            android:layout_height="94dp"
+            android:orientation="horizontal"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/constraintLayout">
+
+            <EditText
+                android:id="@+id/joinHuntCodeInput"
+                android:layout_width="223dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="25dp"
+                android:ems="10"
+                android:hint="10 character code"
+                android:inputType="textPersonName"
+                android:minHeight="48dp" />
+
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

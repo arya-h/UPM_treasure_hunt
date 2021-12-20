@@ -1,16 +1,21 @@
 package com.example.dam_5;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Menu;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,6 +23,7 @@ import com.example.dam_5.ui.hunt.HuntFragment;
 import com.example.dam_5.utilities.GlobalVariables;
 import com.example.dam_5.utilities.User;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -26,6 +32,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.navigation.NavigationView;
 
 import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -39,6 +46,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.collection.LLRBNode;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.squareup.picasso.Picasso;
 
@@ -59,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
 
     private FloatingActionButton newHuntFab, joinHuntFab;
+    private TextView joinHuntCodeInput;
     private TextView newHuntText, joinHuntText;
     private ExtendedFloatingActionButton parentFab;
     private boolean isAllFabsVisible;
@@ -157,7 +166,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 if(task.isSuccessful()){
+                    /*also update global variables*/
+                    GlobalVariables.getInstance().setUsername(username);
+                    GlobalVariables.getInstance().setEmail(currentUser.getEmail());
                     username = task.getResult().getString("username");
+                    boolean onHunt = task.getResult().getBoolean("isOnHunt");
+                    GlobalVariables.getInstance().setHuntInProgress(onHunt);
+                    GlobalVariables.getInstance().setLastHuntCode(task.getResult().getString("lastHunt"));
                     usernameSidebar.setText("@"+username);
                     String url =  task.getResult().getString("profilePictureURL");
                     if(url != null){
@@ -174,6 +189,8 @@ public class MainActivity extends AppCompatActivity {
         /*update value of isHuntInProgress on creation*/
         /*DocumentReference user =*/
         /*then add listener*/
+
+
 
         if (GlobalVariables.getInstance().isHuntInProgress()) {
             /*parentFab.setEnabled(false);*/
@@ -207,7 +224,7 @@ public class MainActivity extends AppCompatActivity {
                         joinHuntFab.hide();
                         joinHuntText.setVisibility(View.GONE);
 
-                        parentFab.shrink();
+
                         isAllFabsVisible = false;
                     }
                 }
@@ -245,10 +262,134 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        ConstraintLayout joinHuntDialog = findViewById(R.id.joinHuntDialogContainer);
+        ProgressBar progressBar = findViewById(R.id.progressBarSearchHunt);
+        progressBar.setVisibility(View.GONE);
+
         /*join hunt option*/
         joinHuntFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                /*prompt to insert code*/
+                joinHuntDialog.setVisibility(View.VISIBLE);
+                /*parentFab.shrink();*/
+                newHuntFab.hide();
+                newHuntText.setVisibility(View.GONE);
+                joinHuntFab.hide();
+                joinHuntText.setVisibility(View.GONE);
+                isAllFabsVisible = false;
+
+            }
+        });
+
+
+        Button searchHuntButton = findViewById(R.id.searchHuntButton);
+        Button joinHuntButton = findViewById(R.id.joinHuntButton);
+        TextView joinHuntCodeInput = findViewById(R.id.joinHuntCodeInput);
+        /*join hunt button is initially disabled*/
+        joinHuntButton.setEnabled(false);
+
+        ImageButton closeDialogBtn = findViewById(R.id.closeJoinHuntDialogButton);
+        closeDialogBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                /*clear data*/
+                joinHuntCodeInput.setText("");
+                joinHuntButton.setEnabled(false);
+                joinHuntButton.setBackgroundColor(Color.RED);
+                joinHuntDialog.setVisibility(View.GONE);
+                joinHuntCodeInput.setEnabled(true);
+            }
+        });
+
+
+
+        searchHuntButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(joinHuntCodeInput.getText().toString().isEmpty()){
+                    joinHuntCodeInput.setError("Empty code!");
+                    joinHuntButton.setEnabled(false);
+                    joinHuntButton.setBackgroundColor(Color.RED);
+                    return;
+                }else if(joinHuntCodeInput.getText().toString().length()!=10){
+                    joinHuntCodeInput.setError("The code must be 10 characters long");
+                    joinHuntButton.setEnabled(false);
+                    joinHuntButton.setBackgroundColor(Color.RED);
+                    return;
+                }
+
+                /*lock the input*/
+                joinHuntCodeInput.setEnabled(false);
+                joinHuntButton.setText("join");
+
+                /*look it up on db*/
+                progressBar.setVisibility(View.VISIBLE);
+                progressBar.setEnabled(true);
+                db.collection("hunts").document(joinHuntCodeInput.getText().toString())
+                        .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(@NonNull DocumentSnapshot documentSnapshot) {
+                        if(documentSnapshot.exists()){
+                            boolean isOngoing = documentSnapshot.getBoolean("isOngoing");
+                            if(isOngoing){
+                                /*disable spinner, enable join button*/
+                                progressBar.setEnabled(false);
+                                progressBar.setVisibility(View.INVISIBLE);
+                                joinHuntButton.setBackgroundColor(Color.GREEN);
+                                joinHuntButton.setEnabled(true);
+
+                            }else{
+                                Snackbar.make(view, R.string.hunt_over_message, Snackbar.LENGTH_LONG).show();
+                                /*clear data*/
+                                joinHuntCodeInput.setText("");
+                                joinHuntButton.setEnabled(false);
+                                joinHuntButton.setBackgroundColor(Color.RED);
+                                joinHuntCodeInput.setEnabled(true);
+                                return;
+                            }
+
+                        }else{
+                            Snackbar.make(view, R.string.hunt_no_exist, Snackbar.LENGTH_LONG);
+                        }
+                    }
+                });
+
+
+
+            }
+        });
+
+
+        /*join hunt effectively
+        *  send to fragment hunt if i can find a way*/
+        joinHuntButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                GlobalVariables.getInstance().setHuntInProgress(true);
+                GlobalVariables.getInstance().setLastHuntCode(joinHuntCodeInput.getText().toString());
+                joinHuntDialog.setVisibility(View.GONE);
+                /*clear data*/
+                joinHuntButton.setEnabled(false);
+                joinHuntButton.setBackgroundColor(Color.RED);
+                joinHuntCodeInput.setEnabled(true);
+                /*send to hunt*/
+                /*join on database*/
+                db.collection("hunts").document(joinHuntCodeInput.getText().toString())
+                        .update("participants", FieldValue.arrayUnion(currentUser.getEmail()));
+
+
+                joinHuntCodeInput.setText("");
+                newHuntFab.setEnabled(false);
+                joinHuntFab.setEnabled(false);
+                newHuntFab.hide();
+                newHuntText.setVisibility(View.GONE);
+                joinHuntFab.hide();
+                joinHuntText.setVisibility(View.GONE);
+                parentFab.setBackgroundColor(Color.RED);
+                isAllFabsVisible = false;
+
+                updateUI();
 
             }
         });
@@ -278,5 +419,43 @@ public class MainActivity extends AppCompatActivity {
         super.onBackPressed();
 
         finishAffinity();
+    }
+
+
+    private void updateUI(){
+        if (GlobalVariables.getInstance().isHuntInProgress()) {
+            /*parentFab.setEnabled(false);*/
+            newHuntFab.setEnabled(false);
+            joinHuntFab.setEnabled(false);
+            parentFab.setBackgroundColor(Color.RED);
+            parentFab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Snackbar.make(view, "There is already a treasure hunt underway. Either abandon the current one or wait for" +
+                            "it to finish!", BaseTransientBottomBar.LENGTH_LONG).show();
+
+                }
+            });
+        } else {
+            parentFab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (!isAllFabsVisible) {
+                        newHuntFab.show();
+                        newHuntText.setVisibility(View.VISIBLE);
+                        joinHuntFab.show();
+                        joinHuntText.setVisibility(View.VISIBLE);
+                        parentFab.extend();
+                        isAllFabsVisible = true;
+                    } else {
+                        newHuntFab.hide();
+                        newHuntText.setVisibility(View.GONE);
+                        joinHuntFab.hide();
+                        joinHuntText.setVisibility(View.GONE);
+                        isAllFabsVisible = false;
+                    }
+                }
+            });
+        }
     }
 }
