@@ -10,7 +10,7 @@ public class HuntViewModel extends ViewModel {
 
     public HuntViewModel() {
         mText = new MutableLiveData<>();
-        mText.setValue("This is search fragment");
+        mText.setValue("This is hunt fragment");
     }
 
     public LiveData<String> getText() {

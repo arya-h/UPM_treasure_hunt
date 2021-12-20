@@ -50,7 +50,7 @@ public class User {
                 if (task.isSuccessful()) {
                     DocumentSnapshot document = task.getResult();
                     if (document.exists()) {
-                        /*Log.d("USER.JAVA", "DocumentSnapshot data: " + document.getData());*/
+                        Log.d("USER.JAVA", "DocumentSnapshot data: " + document.getData());
 
                         x.setUsername(document.getString("username"));
                         x.setEmail(email);

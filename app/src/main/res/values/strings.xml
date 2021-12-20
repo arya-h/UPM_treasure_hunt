@@ -29,4 +29,12 @@
     <string name="new_pin_message">Adding pin</string>
     <string name="new_pin_title">Do you want to add a pin here?</string>
     <string name="add_pin_dialog_title">Name your pin</string>
+
+    <!--HOME-->
+    <string name="home_huntNot">You aren\'t currently participating in a hunt. You can join one by clicking in the bottom right corner</string>
+    <string name="home_huntInProgress">There is currently a hunt in progress. Click here to share the code with friends</string>
+
+    <!--TOKENS-->
+    <string name="avatar_token">NmU5MzJhM2ItMzkyNS00YjQ3LWEyOWMtZTEyYmQwYzUyMDI5</string>
+
 </resources>

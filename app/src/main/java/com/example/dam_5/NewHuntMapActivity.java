@@ -3,13 +3,12 @@ package com.example.dam_5;
 import static android.view.View.GONE;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
+
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.fragment.app.DialogFragment;
+
 import androidx.fragment.app.FragmentActivity;
 
-import android.app.Dialog;
+
 import android.app.Service;
 import android.content.Intent;
 import android.graphics.Color;
@@ -20,11 +19,10 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 /*google maps*/
+import com.example.dam_5.utilities.GlobalVariables;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -42,15 +40,14 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
+
+import com.example.dam_5.utilities.Pin;
 
 public class NewHuntMapActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -83,38 +80,9 @@ public class NewHuntMapActivity extends FragmentActivity implements OnMapReadyCa
     private CollectionReference hunts;
 
 
-    /*chosen coordinates*/
-    private class Pin {
-        public LatLng getCoordinates() {
-            return coordinates;
-        }
 
-        public void setCoordinates(LatLng coordinates) {
-            this.coordinates = coordinates;
-        }
 
-        public String getTitle() {
-            return title;
-        }
-
-        public void setTitle(String title) {
-            this.title = title;
-        }
-
-        public LatLng coordinates;
-        public String title;
-
-        protected Pin(LatLng coordinates, String title) {
-            this.coordinates = coordinates;
-            this.title = title;
-        }
-
-        protected Pin() {
-            this.coordinates = new LatLng(0, 0);
-            this.title = "";
-        }
-    }
-
+    /*selected coordinates*/
     private LinkedList<Pin> chosenCoordinates;
     int radM; /*radius in metres*/
 
@@ -305,34 +273,86 @@ public class NewHuntMapActivity extends FragmentActivity implements OnMapReadyCa
                 /*generate random string to share with friends code*/
                 String randomTag = randomString();
                 Map<String, Object> value = new HashMap<>();
+                /*arr of participants, filled with creator first*/
+                ArrayList<String> part = new ArrayList<>();
+                part.add(currentUser.getEmail());
+                value.put("participants",part);
                 value.put("title", huntTitle);
                 value.put("coordinates", chosenCoordinates);
                 value.put("creator", currentUser.getEmail());
                 value.put("numCoordinates", getIntent().getIntExtra("numCoordinates", 3));
                 value.put("radius", radius);
+                value.put("isOngoing", true);
                 /*add to db*/
                 hunts = db.collection("hunts");
                 hunts.document(randomTag).set(value)
                         .addOnSuccessListener(new OnSuccessListener<Void>() {
                             @Override
                             public void onSuccess(Void aVoid) {
-                                Timer timer = new Timer();
-                                /*simulate loading*/
+                                /*Timer timer = new Timer();
+                                *//*simulate loading*//*
                                 Log.d("YO", "DocumentSnapshot successfully written!");
-                                timer.schedule(new TimerTask() {
+
+
+                                getCallingActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                                                   timer.schedule(new TimerTask() {
                                     @Override
                                     public void run() {
                                         overlay.setVisibility(GONE);
                                     }
                                 }, 2000);
+                                    }
+                                });*/
+                                Thread thread = new Thread(){
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            synchronized (this) {
+                                                wait(2000);
+
+                                                runOnUiThread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        overlay.setVisibility(GONE);
+                                                    }
+                                                });
+
+                                            }
+                                        } catch (InterruptedException e) {
+                                            e.printStackTrace();
+                                        }
+                         /*               Intent mainActivity = new Intent(getApplicationContext(),MainActivity.class);
+                                        startActivity(mainActivity);*/
+                                    };
+                                };
+                                thread.start();
 
                                 /*put user in hunt directly*/
                                 DocumentReference user = db.collection("users").document(currentUser.getEmail());
                                 user.update("isOnHunt", true);
                                 user.update("lastHunt", randomTag);
                                 /*prompt him to share code with friends*/
+                                GlobalVariables.getInstance().setHuntInProgress(true);
+                                GlobalVariables.getInstance().setLastHuntCode(randomTag);
 
+                                Intent sendIntent = new Intent();
+                                sendIntent.setAction(Intent.ACTION_SEND);
+                                sendIntent.putExtra(Intent.EXTRA_TEXT, randomTag);
+                                sendIntent.setType("text/plain");
 
+                                Intent shareIntent = Intent.createChooser(sendIntent, "Hunt Code");
+                                startActivity(shareIntent);
+
+                                /*after this he'll be on the hunt page, ready to start*/
+                                /*the flag makes sure that back presses dont behave weirdly*/
+                                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                intent.putExtra("code", randomTag);
+                                intent.putExtra("fragmentNumber",1);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+                                startActivity(intent);
                             }
                         })
                         .addOnFailureListener(new OnFailureListener() {

@@ -10,45 +10,27 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import android.Manifest;
-import android.annotation.SuppressLint;
-import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationManager;
+
 import android.os.Bundle;
-import android.os.Looper;
-import android.provider.Settings;
+
 import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
+
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.SeekBar;
-import android.widget.TextView;
+
 import android.widget.Toast;
 
-import com.example.dam_5.utilities.PermissionUtils;
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.android.material.snackbar.Snackbar;
 
-import java.util.Locale;
+import com.google.android.gms.location.LocationServices;
+
+import com.google.android.gms.maps.model.LatLng;
+
+import com.google.android.material.snackbar.Snackbar;
 
 public class NewHuntActivity extends AppCompatActivity {
 
@@ -59,7 +41,7 @@ public class NewHuntActivity extends AppCompatActivity {
     private LatLng lastKnownPosition;
 
     private FusedLocationProviderClient mFusedLocationClient;
-    private LocationManager locationManager;
+
 
 
     @Override
@@ -158,6 +140,7 @@ public class NewHuntActivity extends AppCompatActivity {
         } else {
 
             mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
             mFusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
                 if (location != null) {
                     lastKnownPosition = new LatLng(location.getLatitude(), location.getLongitude());

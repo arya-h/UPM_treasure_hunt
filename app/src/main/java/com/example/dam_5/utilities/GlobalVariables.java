@@ -16,6 +16,16 @@ public class GlobalVariables {
     /*bool to know if hunt is ongoing*/
     private boolean isHuntInProgress = false;
 
+    public String getLastHuntCode() {
+        return lastHuntCode;
+    }
+
+    public void setLastHuntCode(String lastHuntCode) {
+        this.lastHuntCode = lastHuntCode;
+    }
+
+    private String lastHuntCode;
+
 
     private static final GlobalVariables instance = new GlobalVariables();
 

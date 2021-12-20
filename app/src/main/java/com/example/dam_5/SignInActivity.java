@@ -12,6 +12,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.dam_5.utilities.AvatarGetter;
+import com.example.dam_5.utilities.DownloadThread;
+import com.example.dam_5.utilities.OkHttp;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -22,6 +25,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -31,13 +36,19 @@ import java.util.regex.Pattern;
 public class SignInActivity extends AppCompatActivity {
 
 
+
+
     //firebase instantiation
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     private FirebaseAuth mAuth;
     private FirebaseUser mUser;
+
+    private String profilePicURL;
+
     //regex to verify if username is valid
     private static final String USERNAME_REGEX = "^[a-zA-Z0-9]([._-](?![._-])|[a-zA-Z0-9]){3,18}[a-zA-Z0-9]$";
     private static final Pattern pattern = Pattern.compile(USERNAME_REGEX);
+    private String profilePictureURL = "";
 
     public static boolean isValid(final String username) {
         Matcher matcher = pattern.matcher(username);
@@ -124,6 +135,24 @@ public class SignInActivity extends AppCompatActivity {
                     progressDialog.setCancelable(false);
                     progressDialog.show();
 
+                    /*make request for avatar*/
+                    /*String req = "https://avatars.dicebear.com/api/open-peeps/" + username + ".png?mood[]=happy";*/
+                    /*String req = "https://api.m3o.com/v1/avatar/Generate";
+                    //Log.d("NETUTIL", req);
+                    try {
+                        DownloadThread dt = new DownloadThread(SignInActivity.this, username, new URL(req));
+                        Thread th = new Thread(dt);
+                        th.start();
+                        profilePictureURL = dt.getResult();
+
+
+
+                    } catch (MalformedURLException e) {
+                        e.printStackTrace();
+                    }
+*/
+
+                    profilePictureURL = "https://avatars.dicebear.com/api/open-peeps/"+ username + ".png";
                     Map<String, Object> data = new HashMap<>();
                     data.put("email", email);
                     data.put("username", username);
@@ -137,16 +166,11 @@ public class SignInActivity extends AppCompatActivity {
                     data.put("isOnHunt", false);
                     data.put("lastHunt", "");
                     data.put("hasProfilePicture", false);
-                    data.put("profilePictureURL", "");
+                    data.put("profilePictureURL",profilePictureURL);
 
                     CollectionReference users = db.collection("users");
 
                     users.document(email).set(data);
-
-
-/*                    db.collection("users").document(email)
-                            .set(data);*/
-
 
                     mAuth.createUserWithEmailAndPassword(email, psw).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                         @Override
@@ -177,5 +201,10 @@ public class SignInActivity extends AppCompatActivity {
 
     }
 
+
+    public String prepareFinishDownload(String result){
+
+        return result;
+    }
 
 }

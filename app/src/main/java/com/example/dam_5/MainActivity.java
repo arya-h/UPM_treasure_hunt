@@ -9,16 +9,23 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.dam_5.ui.hunt.HuntFragment;
 import com.example.dam_5.utilities.GlobalVariables;
+import com.example.dam_5.utilities.User;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.navigation.NavigationView;
 
+import androidx.annotation.NonNull;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -31,7 +38,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.collection.LLRBNode;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.squareup.picasso.Picasso;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -55,6 +64,13 @@ public class MainActivity extends AppCompatActivity {
     private boolean isAllFabsVisible;
 
 
+    /*sidebar*/
+    private TextView usernameSidebar;
+    private TextView emailSidebar;
+    private ImageView profilePictureSidebar;
+    private ImageButton logoutButton;
+    private String username;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,6 +84,11 @@ public class MainActivity extends AppCompatActivity {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         db = FirebaseFirestore.getInstance();
 
+/*        User userComplete = User.getUserFromEmail(currentUser.getEmail());
+        username = userComplete.getUsername();*/
+
+
+
         /*declare floating action buttons*/
         parentFab = findViewById(R.id.fab);
         newHuntFab = findViewById(R.id.new_hunt);
@@ -80,6 +101,8 @@ public class MainActivity extends AppCompatActivity {
         newHuntText.setVisibility(View.GONE);
         joinHuntFab.setVisibility(View.GONE);
         joinHuntText.setVisibility(View.GONE);
+
+
 
         setSupportActionBar(binding.appBarMain.toolbar);
 
@@ -95,10 +118,61 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
 
+
+        /*sidebar text & img*/
+        logoutButton = navigationView.getHeaderView(0).findViewById(R.id.logoutButton);
+        usernameSidebar = navigationView.getHeaderView(0).findViewById(R.id.usernameSidebar);
+        emailSidebar = navigationView.getHeaderView(0).findViewById(R.id.emailSidebar);
+        profilePictureSidebar = navigationView.getHeaderView(0).findViewById(R.id.profilePictureSidebar);
+        /*sidebar button logout*/
+
+        logoutButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setMessage("Are you sure you want to log out?")
+                        .setPositiveButton("Yes!", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                mAuth.signOut();
+                                Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                                startActivity(intent);
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                // User cancelled the dialog
+
+                            }
+                        });
+
+                AlertDialog alert = builder.create();
+                alert.show();
+
+            }
+        });
+
+        /*set sidebar values*/
+        emailSidebar.setText(currentUser.getEmail());
+        db.collection("users").document(currentUser.getEmail()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if(task.isSuccessful()){
+                    username = task.getResult().getString("username");
+                    usernameSidebar.setText("@"+username);
+                    String url =  task.getResult().getString("profilePictureURL");
+                    if(url != null){
+                        Picasso.get().load(url).into(profilePictureSidebar);
+                    }
+
+                }
+            }
+        });
+        /* Picasso.get().load(userComplete.getProfilePictureURL()).resize(40,40).into(profilePictureSidebar);
+         */
         isAllFabsVisible = false;
 
         /*update value of isHuntInProgress on creation*/
-        DocumentReference user =
+        /*DocumentReference user =*/
         /*then add listener*/
 
         if (GlobalVariables.getInstance().isHuntInProgress()) {
