@@ -33,6 +33,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -41,6 +42,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FieldValue;
@@ -56,16 +58,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class HuntFragment extends Fragment implements OnMapReadyCallback {
+public class HuntFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     /*firebase*/
+    private Map<Marker, Integer> checkClickMap;
     private FirebaseFirestore db;
     private String username;
-    /*private FirebaseAuth mAuth;*/
+    private FirebaseAuth mAuth;
 
     /* location */
     private FusedLocationProviderClient mFusedLocationClient;
 
+    private ArrayList<Marker> listMarkers;
     private static final String TAG = "LISTENER";
 
     /*views*/
@@ -75,7 +79,8 @@ public class HuntFragment extends Fragment implements OnMapReadyCallback {
     private boolean isOngoing;
     private TextView titleNoHunt;
     private ArrayList<Pin> chosenCoordinates;
-    private int numCoord;
+    private Long numCoord;
+    private TextView numCoordText;
 
     /*hunt data*/
     String randomTag;
@@ -115,15 +120,29 @@ public class HuntFragment extends Fragment implements OnMapReadyCallback {
         /*firebase instance*/
         db = FirebaseFirestore.getInstance();
 
+        mAuth = FirebaseAuth.getInstance();
+        db.collection("users").document(mAuth.getCurrentUser().getEmail())
+                .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(@NonNull DocumentSnapshot documentSnapshot) {
+                if (documentSnapshot.exists()) {
+                    GlobalVariables.getInstance().setUsername(documentSnapshot.getString("username"));
+                }
+            }
+        });
+
+        checkClickMap = new HashMap<>();
+
         /*coordinates data*/
         chosenCoordinates = new ArrayList<>();
+        listMarkers = new ArrayList<>();
 
         titleNoHunt = getView().findViewById(R.id.huntFragm_idle);
 
         if (!GlobalVariables.getInstance().isHuntInProgress()) {
             titleNoHunt.setVisibility(View.VISIBLE);
             titleNoHunt.setText(R.string.home_huntNot);
-            Intent intent= new Intent(getContext(), MainActivity.class);
+            Intent intent = new Intent(getContext(), MainActivity.class);
             startActivity(intent);
         } else {
             /*request permission*/
@@ -148,7 +167,7 @@ public class HuntFragment extends Fragment implements OnMapReadyCallback {
             /*add a listener for changes in the currently followed hunt*/
             /*if changes are seen, notification appears*/
 
-            db.collection("hunts")
+/*            db.collection("hunts")
                     .document(randomTag)
                     .addSnapshotListener(new EventListener<DocumentSnapshot>() {
                         @Override
@@ -159,19 +178,32 @@ public class HuntFragment extends Fragment implements OnMapReadyCallback {
                                 return;
                             }
                             if (docSnap.exists()) {
-                                ArrayList<Object> notifs = (ArrayList<Object>) docSnap.get("notifications");
+                                Object notifs = (Object) docSnap.get("notifications");
+                                if(notifs()){
+                                    return;
+                                }
                                 Object lastNotification = notifs.get(notifs.size() - 1);
+                                Log.d("HUNT_NOTIF", lastNotification.toString());
 
                                 JSONParser parser = new JSONParser();
                                 try {
                                     Object now = parser.parse(replaceString(lastNotification.toString()));
+                                    Log.d("HUNT_NOTIF", now.toString());
                                     JSONObject jObj = (JSONObject) now;
-                                    /*NotificationHunt not = new NotificationHunt(jObj.get("type").toString(), jObj.get("username").toString(), jObj.get("pinName").toString()); */
+                                    *//*NotificationHunt not = new NotificationHunt(jObj.get("type").toString(), jObj.get("username").toString(), jObj.get("pinName").toString()); *//*
                                     String type = jObj.get("type").toString();
-                                    String username = jObj.get("username").toString();
-                                    String pinName = jObj.get("pinName").toString();
+                                    String username = jObj.get("user").toString();
+                                    String pinName = jObj.get("namePin").toString();
 
-                                    Snackbar.make(getView(), "type :"+type + " - username : " + username + " - pinName = " + pinName, Snackbar.LENGTH_LONG).show();
+                                    Log.d("BUGFIX", "sender : "+username + " current user : " + GlobalVariables.getInstance().getUsername());
+
+                                    if(username.equals(GlobalVariables.getInstance().getUsername())){
+                                        *//*dont need to notify the user of itself*//*
+                                        return;
+                                    }else{
+                                        Snackbar.make(getView(), "type :"+type + " - username : " + username + " - pinName = " + pinName, Snackbar.LENGTH_LONG).show();
+                                    }
+
 
 
                                 } catch (ParseException ex) {
@@ -179,7 +211,7 @@ public class HuntFragment extends Fragment implements OnMapReadyCallback {
                                 }
                             }
                         }
-                    });
+                    });*/
         }
     }
 
@@ -194,12 +226,15 @@ public class HuntFragment extends Fragment implements OnMapReadyCallback {
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
 
+        mMap.setOnMarkerClickListener(this);
         /*to query last position*/
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(getActivity());
 
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
         mMap.setMyLocationEnabled(true);
+
+        numCoordText = getView().findViewById(R.id.numCoord);
 
         /*retrieve information about hunt*/
         randomTag = GlobalVariables.getInstance().getLastHuntCode();
@@ -210,6 +245,8 @@ public class HuntFragment extends Fragment implements OnMapReadyCallback {
                         if (task.isSuccessful()) {
                             DocumentSnapshot document = task.getResult();
                             if (document.exists()) {
+                                numCoord = (long) document.get("numCoordinates");
+                                numCoordText.setText(numCoord.toString());
                                 List<Object> arr = (List<Object>) document.get("coordinates");
                                 Log.d("HUNTMAP", arr.toString());
 
@@ -238,6 +275,7 @@ public class HuntFragment extends Fragment implements OnMapReadyCallback {
                                         Pin pinTmp = new Pin(new LatLng(lat, longi), posTitle);
 
                                         chosenCoordinates.add(pinTmp);
+
                                         Log.d("HUNTMAP", chosenCoordinates.toArray().toString());
 
                                         /*retrieve title*/
@@ -254,12 +292,12 @@ public class HuntFragment extends Fragment implements OnMapReadyCallback {
                                         }
 
                                         /*put markers on map*/
-                                        numCoord = chosenCoordinates.size();
+
 
                                         for (Pin p : chosenCoordinates) {
                                             Log.d("HUNTMAP", p.coordinates.toString());
 
-                                            mMap.addMarker(new MarkerOptions().position(p.getCoordinates()).title(p.getTitle()));
+                                            checkClickMap.put(mMap.addMarker(new MarkerOptions().position(p.getCoordinates()).title(p.getTitle())),2);
                                             mMap.addCircle(new CircleOptions()
                                                     .center(p.getCoordinates())
                                                     .radius(radM))
@@ -272,6 +310,7 @@ public class HuntFragment extends Fragment implements OnMapReadyCallback {
                                     }
 
                                 }
+
                             }
                         }
                     }
@@ -282,17 +321,19 @@ public class HuntFragment extends Fragment implements OnMapReadyCallback {
 
         /*handle clicks on circles*/
 
-        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-            @SuppressLint("MissingPermission")
-            @Override
-            public boolean onMarkerClick(@NonNull Marker marker) {
-                /*determine whether user is inside the circle*/
-                /*get location precise*/
+    }
 
-                /*center of circle is*/
+    @SuppressLint("MissingPermission")
+    @Override
+    public boolean onMarkerClick(@NonNull Marker marker) {
+        Log.d("LOCATION_NOW", marker.getPosition().toString());
 
                 double latC = marker.getPosition().latitude;
                 double longC = marker.getPosition().longitude;
+
+
+
+                Log.d("LOCATION_NOW", marker.getPosition().toString());
 
                 mFusedLocationClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
                     @Override
@@ -300,32 +341,41 @@ public class HuntFragment extends Fragment implements OnMapReadyCallback {
                         /*if the distance from the centre is less than the radius, inside*/
                         Log.d("LOCATION_NOW", location.getLatitude() + " - " + location.getLongitude());
 
+
                         float[] flDist = new float[4];
                         Location.distanceBetween(latC, longC, location.getLatitude(), location.getLongitude(), flDist);
-                       /* Log.d("LOCATION", "Distance, whole array : " + flDist);
-                        Log.d("LOCATION", "Distance : " + flDist[0]);
 
-                        Log.d("LOCATION", "marker : " + latC + " - " + longC);*/
-
-
-                        if (flDist[0] < radM) {
+                        if (flDist[0] < radM && !listMarkers.contains(marker)) {
+                            /*if (listMarkers.contains(marker)) {
+                                Snackbar.make(getView(), "you already clicked here", Snackbar.LENGTH_LONG).show();
+                                return;
+                            }*/
+                            if(checkClickMap.containsKey(marker)){
+                                int val = checkClickMap.get(marker);
+                                val--;
+                                checkClickMap.replace(marker, val);
+                                if(val==0){
+                                    numCoord--;
+                                    marker.remove();
+                                    numCoordText.setText(numCoord.toString());
+                                }
+                            }
                             Snackbar.make(getView(), "You're inside!", Snackbar.LENGTH_SHORT).show();
                             /*save that this user has registered*/
-                            /*change the marker image?*/
-                            marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                            /*change the marker image or remove it directly??*/
+                                                      /*if it was the last pin*/
 
-                            /*if it was the last pin*/
-                            numCoord--;
+
                             if (numCoord == 0) {
                                 /*send notification that hunt has finished*/
                                 /*create map for notification*/
                                 Map<String, String> notif = new HashMap<>();
                                 notif.put("user", GlobalVariables.getInstance().getUsername());
                                 notif.put("type", "finishedHunt");
-                                notif.put("pinName", "");
+                                notif.put("namePin", "");
                                 /*update db, will then send notification to other users*/
                                 db.collection("hunts").document(randomTag)
-                                        .update("notifications", FieldValue.arrayUnion(notif));
+                                        .update("notifications", notif);
 
                                 db.collection("hunts").document(randomTag)
                                         .update("isOngoing", false);
@@ -337,7 +387,8 @@ public class HuntFragment extends Fragment implements OnMapReadyCallback {
                                 notif.put("namePin", marker.getTitle());
                                 /*update db, will then send notification to other users*/
                                 db.collection("hunts").document(randomTag)
-                                        .update("notifications", FieldValue.arrayUnion(notif));
+                                        .update("notifications", notif);
+
 
                             }
                         } else {
@@ -346,12 +397,20 @@ public class HuntFragment extends Fragment implements OnMapReadyCallback {
                         }
                     }
                 });
+        return false;
 
-
-                return false;
             }
-        });
+
+        }
 
 
-    }
-}
+
+
+            /*center of circle is*/
+
+
+
+/*        }*/
+
+    /*}*/
+

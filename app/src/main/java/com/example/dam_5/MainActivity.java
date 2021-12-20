@@ -48,7 +48,9 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.messaging.FirebaseMessagingService;
 import com.squareup.picasso.Picasso;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -72,6 +74,10 @@ public class MainActivity extends AppCompatActivity {
     private ExtendedFloatingActionButton parentFab;
     private boolean isAllFabsVisible;
 
+    private Button shareCodeButton;
+    private Button leaveHuntButton;
+    private TextView mainTitle;
+
 
     /*sidebar*/
     private TextView usernameSidebar;
@@ -93,8 +99,24 @@ public class MainActivity extends AppCompatActivity {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         db = FirebaseFirestore.getInstance();
 
-/*        User userComplete = User.getUserFromEmail(currentUser.getEmail());
-        username = userComplete.getUsername();*/
+        /*NOTIFICATION MANAGER THROUGH FIREBASE TRIGGERS*/
+        FirebaseMessaging firebaseMessaging = FirebaseMessaging.getInstance();
+        /*notify on creation of new hunt*/
+        firebaseMessaging.subscribeToTopic("newHunt");
+
+        /*notify about current hunt, if ongoing*/
+        db.collection("users").document(mAuth.getCurrentUser().getEmail())
+                .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(@NonNull DocumentSnapshot documentSnapshot) {
+                if(documentSnapshot.exists()){
+                    if(documentSnapshot.getBoolean("isOnHunt")){
+                        firebaseMessaging.subscribeToTopic(documentSnapshot.getString("lastHunt"));
+                    }
+                }
+            }
+        });
+
 
 
 
@@ -171,6 +193,7 @@ public class MainActivity extends AppCompatActivity {
                     GlobalVariables.getInstance().setEmail(currentUser.getEmail());
                     username = task.getResult().getString("username");
                     boolean onHunt = task.getResult().getBoolean("isOnHunt");
+                    Log.d("BUGFIX", "user "+ currentUser.getEmail() + " is on hunt? " + onHunt);
                     GlobalVariables.getInstance().setHuntInProgress(onHunt);
                     GlobalVariables.getInstance().setLastHuntCode(task.getResult().getString("lastHunt"));
                     usernameSidebar.setText("@"+username);
@@ -179,11 +202,53 @@ public class MainActivity extends AppCompatActivity {
                         Picasso.get().load(url).into(profilePictureSidebar);
                     }
 
+
+                    /*handle buttons*/
+                    if (GlobalVariables.getInstance().isHuntInProgress()) {
+
+                        newHuntFab.setEnabled(false);
+                        joinHuntFab.setEnabled(false);
+                        parentFab.setBackgroundColor(Color.RED);
+                        parentFab.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                Snackbar.make(view, "There is already a treasure hunt underway. Either abandon the current one or wait for" +
+                                        "it to finish!", BaseTransientBottomBar.LENGTH_LONG).show();
+
+                            }
+                        });
+                    } else {
+                        parentFab.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                if (!isAllFabsVisible) {
+                                    newHuntFab.show();
+                                    newHuntText.setVisibility(View.VISIBLE);
+                                    joinHuntFab.show();
+                                    joinHuntText.setVisibility(View.VISIBLE);
+
+                                    parentFab.extend();
+
+                                    isAllFabsVisible = true;
+                                } else {
+                                    newHuntFab.hide();
+                                    newHuntText.setVisibility(View.GONE);
+                                    joinHuntFab.hide();
+                                    joinHuntText.setVisibility(View.GONE);
+
+
+                                    isAllFabsVisible = false;
+                                }
+                            }
+                        });
+                    }
+
+                    parentFab.shrink();
+
                 }
             }
         });
-        /* Picasso.get().load(userComplete.getProfilePictureURL()).resize(40,40).into(profilePictureSidebar);
-         */
+
         isAllFabsVisible = false;
 
         /*update value of isHuntInProgress on creation*/
@@ -191,47 +256,6 @@ public class MainActivity extends AppCompatActivity {
         /*then add listener*/
 
 
-
-        if (GlobalVariables.getInstance().isHuntInProgress()) {
-            /*parentFab.setEnabled(false);*/
-            newHuntFab.setEnabled(false);
-            joinHuntFab.setEnabled(false);
-            parentFab.setBackgroundColor(Color.RED);
-            parentFab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Snackbar.make(view, "There is already a treasure hunt underway. Either abandon the current one or wait for" +
-                            "it to finish!", BaseTransientBottomBar.LENGTH_LONG).show();
-
-                }
-            });
-        } else {
-            parentFab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (!isAllFabsVisible) {
-                        newHuntFab.show();
-                        newHuntText.setVisibility(View.VISIBLE);
-                        joinHuntFab.show();
-                        joinHuntText.setVisibility(View.VISIBLE);
-
-                        parentFab.extend();
-
-                        isAllFabsVisible = true;
-                    } else {
-                        newHuntFab.hide();
-                        newHuntText.setVisibility(View.GONE);
-                        joinHuntFab.hide();
-                        joinHuntText.setVisibility(View.GONE);
-
-
-                        isAllFabsVisible = false;
-                    }
-                }
-            });
-        }
-
-        parentFab.shrink();
 
 
 
@@ -378,6 +402,22 @@ public class MainActivity extends AppCompatActivity {
                 db.collection("hunts").document(joinHuntCodeInput.getText().toString())
                         .update("participants", FieldValue.arrayUnion(currentUser.getEmail()));
 
+                /*update user*/
+                db.collection("users").document(mAuth.getCurrentUser().getEmail())
+                        .update("isOnHunt", true);
+
+                db.collection("users").document(mAuth.getCurrentUser().getEmail())
+                        .update("lastHunt", joinHuntCodeInput.getText().toString());
+
+                /*manage ui, make them visible*/
+                mainTitle = findViewById(R.id.homeBigTitle);
+                shareCodeButton = findViewById(R.id.shareCodeButton);
+                leaveHuntButton = findViewById(R.id.leaveCurrentHuntButton);
+
+                mainTitle.setText(R.string.home_huntInProgress);
+                shareCodeButton.setVisibility(View.VISIBLE);
+                leaveHuntButton.setVisibility(View.VISIBLE);
+
 
                 joinHuntCodeInput.setText("");
                 newHuntFab.setEnabled(false);
@@ -390,6 +430,8 @@ public class MainActivity extends AppCompatActivity {
                 isAllFabsVisible = false;
 
                 updateUI();
+
+
 
             }
         });

@@ -9,6 +9,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.FragmentActivity;
 
 
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Intent;
 import android.graphics.Color;
@@ -157,6 +158,7 @@ public class NewHuntMapActivity extends FragmentActivity implements OnMapReadyCa
      * it inside the SupportMapFragment. This method will only be triggered once the user has
      * installed Google Play services and returned to the app.
      */
+    @SuppressLint("MissingPermission")
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -283,29 +285,13 @@ public class NewHuntMapActivity extends FragmentActivity implements OnMapReadyCa
                 value.put("numCoordinates", getIntent().getIntExtra("numCoordinates", 3));
                 value.put("radius", radius);
                 value.put("isOngoing", true);
-                value.put("notifications", new ArrayList<String>());
+                value.put("notifications", "");
                 /*add to db*/
                 hunts = db.collection("hunts");
                 hunts.document(randomTag).set(value)
                         .addOnSuccessListener(new OnSuccessListener<Void>() {
                             @Override
                             public void onSuccess(Void aVoid) {
-                                /*Timer timer = new Timer();
-                                *//*simulate loading*//*
-                                Log.d("YO", "DocumentSnapshot successfully written!");
-
-
-                                getCallingActivity().runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                                                   timer.schedule(new TimerTask() {
-                                    @Override
-                                    public void run() {
-                                        overlay.setVisibility(GONE);
-                                    }
-                                }, 2000);
-                                    }
-                                });*/
                                 Thread thread = new Thread(){
                                     @Override
                                     public void run() {
@@ -324,8 +310,7 @@ public class NewHuntMapActivity extends FragmentActivity implements OnMapReadyCa
                                         } catch (InterruptedException e) {
                                             e.printStackTrace();
                                         }
-                         /*               Intent mainActivity = new Intent(getApplicationContext(),MainActivity.class);
-                                        startActivity(mainActivity);*/
+
                                     };
                                 };
                                 thread.start();

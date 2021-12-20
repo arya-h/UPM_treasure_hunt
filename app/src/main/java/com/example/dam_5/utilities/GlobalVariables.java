@@ -14,7 +14,7 @@ public class GlobalVariables {
     }
 
     /*bool to know if hunt is ongoing*/
-    private boolean isHuntInProgress = false;
+    private boolean isHuntInProgress;
     private String lastHuntCode;
     private String username;
 
