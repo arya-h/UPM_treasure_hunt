@@ -124,31 +124,12 @@ public class SignInActivity extends AppCompatActivity {
                 } else {
                     progressDialog.setIndeterminate(true);
                     progressDialog.setTitle("Registration in process");
-
-
                     progressDialog.setMessage("Please wait");
                     progressDialog.setCanceledOnTouchOutside(false);
                     progressDialog.setCancelable(false);
                     progressDialog.show();
 
-                    /*make request for avatar*/
-                    /*String req = "https://avatars.dicebear.com/api/open-peeps/" + username + ".png?mood[]=happy";*/
-                    /*String req = "https://api.m3o.com/v1/avatar/Generate";
-                    //Log.d("NETUTIL", req);
-                    try {
-                        DownloadThread dt = new DownloadThread(SignInActivity.this, username, new URL(req));
-                        Thread th = new Thread(dt);
-                        th.start();
-                        profilePictureURL = dt.getResult();
-
-
-
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
-                    }
-*/
-
-                    profilePictureURL = "https://avatars.dicebear.com/api/open-peeps/"+ username + ".png";
+                    profilePictureURL = "https://avatars.dicebear.com/api/personas/"+ username + ".png";
                     Map<String, Object> data = new HashMap<>();
                     data.put("email", email);
                     data.put("username", username);
@@ -161,7 +142,7 @@ public class SignInActivity extends AppCompatActivity {
                     //if the user is currently on a hunt, initialized to false
                     data.put("isOnHunt", false);
                     data.put("lastHunt", "");
-                    data.put("hasProfilePicture", false);
+                    data.put("hasProfilePicture", true);
                     data.put("profilePictureURL",profilePictureURL);
 
                     CollectionReference users = db.collection("users");
